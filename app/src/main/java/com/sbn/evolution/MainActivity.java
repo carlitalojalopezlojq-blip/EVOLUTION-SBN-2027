@@ -45,7 +45,8 @@ public class MainActivity extends Activity {
         splash.addView(content,cp);
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.arena_emblem);
-        content.addView(logo,new LinearLayout.LayoutParams(dp(92),dp(92)));
+        logo.animate().rotationBy(12f).setDuration(250).withEndAction(new Runnable(){public void run(){if(!ready&&!closed)logo.animate().rotationBy(-24f).setDuration(450).withEndAction(()->logo.animate().rotationBy(24f).setDuration(450).withEndAction(this).start()).start();}}).start();
+        content.addView(logo,new LinearLayout.LayoutParams(dp(145),dp(145)));
         TextView title = text("EVOLUTION",30,Color.WHITE);
         title.setTypeface(Typeface.DEFAULT,Typeface.BOLD_ITALIC);
         content.addView(title,new LinearLayout.LayoutParams(-1,-2));
