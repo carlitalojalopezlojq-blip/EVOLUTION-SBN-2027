@@ -1,5 +1,10 @@
 name: Android APK
-on: [push, workflow_dispatch]
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -15,7 +20,27 @@ jobs:
         with:
           gradle-version: '8.9'
       - run: gradle assembleDebug
+      - name: Firmar APK con clave permanente y verificar
+        shell: bash
+        env:
+          SIGNING_BUNDLE: ${{ secrets.EVOLUTION_ANDROID_SIGNING }}
+        run: |
+          set -euo pipefail
+          umask 077
+          if [[ -z "$SIGNING_BUNDLE" ]]; then
+            echo 'Falta el secreto EVOLUTION_ANDROID_SIGNING. No se publicara un APK con firma temporal.' >&2
+            exit 1
+          fi
+          signing_dir=$(mktemp -d "$RUNNER_TEMP/evolution-signing.XXXXXX")
+          trap 'rm -rf -- "$signing_dir"' EXIT
+          printf '%s' "$SIGNING_BUNDLE" | base64 --decode | tar -xzf - -C "$signing_dir"
+          unset SIGNING_BUNDLE
+          signer="$ANDROID_HOME/build-tools/35.0.0/apksigner"
+          mkdir -p "$RUNNER_TEMP/evolution-apk"
+          "$signer" sign --ks "$signing_dir/evolution.p12" --ks-type PKCS12 --ks-key-alias evolution --ks-pass "file:$signing_dir/password.txt" --key-pass "file:$signing_dir/password.txt" --v4-signing-enabled false --out "$RUNNER_TEMP/evolution-apk/app-debug.apk" app/build/outputs/apk/debug/app-debug.apk
+          "$signer" verify --verbose --print-certs "$RUNNER_TEMP/evolution-apk/app-debug.apk"
       - uses: actions/upload-artifact@v4
         with:
           name: EVOLUTION-SBN-2027-APK
-          path: app/build/outputs/apk/debug/app-debug.apk
+          path: ${{ runner.temp }}/evolution-apk/app-debug.apk
+          if-no-files-found: error
