@@ -30,10 +30,10 @@ public class MainActivity extends Activity {
     private MediaPlayer musicPlayer;
     private boolean foreground, wantsAudio, bossAudio;
     private float musicVolume=.65f;
-    private String playingAsset="";
+    private String playingAsset="", requestedAsset="music.mp3";
     private void updateAudio(){
         if(!foreground || !wantsAudio || closed){if(musicPlayer!=null && musicPlayer.isPlaying())musicPlayer.pause();return;}
-        String asset=bossAudio?"suspense.mp3":"music.mp3";
+        String asset=requestedAsset;
         try {
             if(musicPlayer==null || !asset.equals(playingAsset)){
                 releaseAudio();
@@ -48,7 +48,8 @@ public class MainActivity extends Activity {
     private void releaseAudio(){if(musicPlayer!=null){musicPlayer.release();musicPlayer=null;}playingAsset="";}
     public class GameBridge {
         @JavascriptInterface public void volume(float value){handler.post(()->{musicVolume=Math.max(0f,Math.min(1f,value));if(musicPlayer!=null)musicPlayer.setVolume(musicVolume,musicVolume);});}
-        @JavascriptInterface public void audio(boolean enabled,boolean boss){handler.post(()->{wantsAudio=enabled;bossAudio=boss;updateAudio();});}
+        @JavascriptInterface public void audio(boolean enabled,boolean boss){handler.post(()->{wantsAudio=enabled;bossAudio=boss;requestedAsset=boss?"suspense.mp3":"music.mp3";updateAudio();});}
+        @JavascriptInterface public void soundtrack(boolean enabled,String stage){handler.post(()->{wantsAudio=enabled;requestedAsset="boss".equals(stage)?"suspense.mp3":"intro".equals(stage)?"intro.mp3":"menu".equals(stage)?"menu.mp3":"music.mp3";updateAudio();});}
         @JavascriptInterface public void alertKing(){handler.post(()->{if(!foreground||closed)return;Vibrator v=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);if(v!=null&&v.hasVibrator()){long[] pattern={0,220,100,220,100,450};if(android.os.Build.VERSION.SDK_INT>=26)v.vibrate(VibrationEffect.createWaveform(pattern,-1));else v.vibrate(pattern,-1);}});}
     }
     private FrameLayout splash;
