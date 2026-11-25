@@ -1,0 +1,1 @@
+<resources><style name="ArenaTheme" parent="android:style/Theme.Material.NoActionBar"><item name="android:windowBackground">#07121F</item><item name="android:windowFullscreen">true</item><item name="android:colorAccent">#43FFD1</item></style></resources>
