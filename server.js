@@ -1,6 +1,6 @@
 'use strict';
 const http=require('http'),{WebSocketServer}=require('ws'),G=require('./app/src/main/assets/engine'),crypto=require('crypto'),rooms=new Map(),sessions=new Map(),A=require('./accounts'),limits=new Map();
-const server=http.createServer((q,r)=>{r.setHeader('Content-Type','application/json');r.end(JSON.stringify({game:'EVOLUTION SBN 2027 v1.9',rooms:rooms.size}));});
+const server=http.createServer((q,r)=>{r.setHeader('Content-Type','application/json');r.end(JSON.stringify({game:'EVOLUTION SBN 2027 v2.0',rooms:rooms.size}));});
 const wss=new WebSocketServer({server,maxPayload:2048,perMessageDeflate:false});
 const send=(ws,data)=>{if(ws.readyState===1&&ws.bufferedAmount<200000)ws.send(JSON.stringify(data));};
 function blocks(q){let out=[];for(let i=0;i<q.body.length;i+=32){let part=q.body.slice(i,Math.min(i+33,q.body.length)).map(b=>[Math.round(b[0]),Math.round(b[1])]);let xs=part.map(b=>b[0]),ys=part.map(b=>b[1]);out.push({i,part,x0:Math.min(...xs),x1:Math.max(...xs),y0:Math.min(...ys),y1:Math.max(...ys)});}return out;}
