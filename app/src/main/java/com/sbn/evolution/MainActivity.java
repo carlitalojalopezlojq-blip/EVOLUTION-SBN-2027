@@ -43,10 +43,13 @@ public class MainActivity extends Activity {
         int width = Math.min(dp(340),getResources().getDisplayMetrics().widthPixels-dp(32));
         FrameLayout.LayoutParams cp = new FrameLayout.LayoutParams(width,-2,Gravity.CENTER);
         splash.addView(content,cp);
-        ImageView logo = new ImageView(this);
-        logo.setImageResource(R.drawable.arena_emblem);
-        logo.animate().rotationBy(12f).setDuration(250).withEndAction(new Runnable(){public void run(){if(!ready&&!closed)logo.animate().rotationBy(-24f).setDuration(450).withEndAction(()->logo.animate().rotationBy(24f).setDuration(450).withEndAction(this).start()).start();}}).start();
-        content.addView(logo,new LinearLayout.LayoutParams(dp(145),dp(145)));
+        View chase = new View(this) {
+            final android.graphics.Paint paint = new android.graphics.Paint(3);
+            void worm(android.graphics.Canvas c,float x,float y,float radius,int color,float phase,boolean king){
+                paint.setColor(color); for(int i=22;i>=0;i--){float px=x-i*radius*.42f;float py=y+(float)Math.sin(i*.36+phase)*radius*.7f;c.drawCircle(px,py,radius,paint);}paint.setColor(Color.WHITE);c.drawCircle(x+radius*.35f,y+(float)Math.sin(phase)*radius*.7f-radius*.28f,radius*.28f,paint);if(king){paint.setColor(0xffffcd4d);android.graphics.Path crown=new android.graphics.Path();float yy=y+(float)Math.sin(phase)*radius*.7f-radius*.9f;crown.moveTo(x-radius,yy);crown.lineTo(x-radius,yy-radius*.8f);crown.lineTo(x-radius*.4f,yy-radius*.25f);crown.lineTo(x,yy-radius);crown.lineTo(x+radius*.4f,yy-radius*.25f);crown.lineTo(x+radius,yy-radius*.8f);crown.lineTo(x+radius,yy);crown.close();c.drawPath(crown,paint);}}
+            @Override protected void onDraw(android.graphics.Canvas c){super.onDraw(c);float w=getWidth(),h=getHeight(),t=SystemClock.uptimeMillis()/180f;float shift=(float)Math.sin(t*.24)*w*.06f;worm(c,w*.37f+shift,h*.30f,h*.12f,0xfff45b30,t,true);worm(c,w*.46f+shift,h*.76f,h*.12f,0xff55caff,t+.8f,true);worm(c,w*.83f+shift,h*.51f,h*.055f,0xffa1f45e,t+1.4f,false);if(!closed&&isShown())postInvalidateDelayed(32);}
+        };
+        content.addView(chase,new LinearLayout.LayoutParams(-1,dp(100)));
         TextView title = text("EVOLUTION",30,Color.WHITE);
         title.setTypeface(Typeface.DEFAULT,Typeface.BOLD_ITALIC);
         content.addView(title,new LinearLayout.LayoutParams(-1,-2));
@@ -77,7 +80,7 @@ public class MainActivity extends Activity {
     }};
     private TextView text(String s,int size,int color){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER);return t;}
     private int dp(int v){return Math.round(v*getResources().getDisplayMetrics().density);}
-    @Override protected void onPause(){super.onPause();if(web!=null){web.evaluateJavascript("document.getElementById('track')?.pause()",null);web.onPause();}}
+    @Override protected void onPause(){super.onPause();if(web!=null){web.evaluateJavascript("document.getElementById('track')?.pause();document.getElementById('bossTrack')?.pause()",null);web.onPause();}}
     @Override protected void onResume(){super.onResume();if(web!=null)web.onResume();}
     @Override protected void onDestroy(){closed=true;handler.removeCallbacksAndMessages(null);if(web!=null){web.stopLoading();((android.view.ViewGroup)web.getParent()).removeView(web);web.destroy();}super.onDestroy();}
 }
