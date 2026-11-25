@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     private WebView web;
     private MediaPlayer musicPlayer;
     private boolean foreground, wantsAudio, bossAudio;
+    private float musicVolume=.65f;
     private String playingAsset="";
     private void updateAudio(){
         if(!foreground || !wantsAudio || closed){if(musicPlayer!=null && musicPlayer.isPlaying())musicPlayer.pause();return;}
@@ -39,13 +40,14 @@ public class MainActivity extends Activity {
                 musicPlayer=new MediaPlayer();
                 musicPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
                 try(AssetFileDescriptor fd=getAssets().openFd(asset)){musicPlayer.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}
-                musicPlayer.setLooping(true);musicPlayer.setVolume(.65f,.65f);musicPlayer.prepare();playingAsset=asset;
+                musicPlayer.setLooping(true);musicPlayer.setVolume(musicVolume,musicVolume);musicPlayer.prepare();playingAsset=asset;
             }
             if(!musicPlayer.isPlaying())musicPlayer.start();
         } catch(Exception e){android.util.Log.e("EvolutionAudio","Audio failed",e);releaseAudio();}
     }
     private void releaseAudio(){if(musicPlayer!=null){musicPlayer.release();musicPlayer=null;}playingAsset="";}
     public class GameBridge {
+        @JavascriptInterface public void volume(float value){handler.post(()->{musicVolume=Math.max(0f,Math.min(1f,value));if(musicPlayer!=null)musicPlayer.setVolume(musicVolume,musicVolume);});}
         @JavascriptInterface public void audio(boolean enabled,boolean boss){handler.post(()->{wantsAudio=enabled;bossAudio=boss;updateAudio();});}
         @JavascriptInterface public void alertKing(){handler.post(()->{if(!foreground||closed)return;Vibrator v=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);if(v!=null&&v.hasVibrator()){long[] pattern={0,220,100,220,100,450};if(android.os.Build.VERSION.SDK_INT>=26)v.vibrate(VibrationEffect.createWaveform(pattern,-1));else v.vibrate(pattern,-1);}});}
     }
@@ -79,6 +81,7 @@ public class MainActivity extends Activity {
         splash.addView(content,cp);
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.arena_emblem);
+        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
         content.addView(logo,new LinearLayout.LayoutParams(dp(112),dp(112)));
         TextView title = text("EVOLUTION",30,Color.WHITE);
         title.setTypeface(Typeface.DEFAULT,Typeface.BOLD_ITALIC);
@@ -91,6 +94,8 @@ public class MainActivity extends Activity {
         LinearLayout.LayoutParams bp=new LinearLayout.LayoutParams(-1,dp(12));bp.topMargin=dp(12);content.addView(bar,bp);
         loading=text("PREPARANDO ARENA…",12,0xFFCDEAE8);
         content.addView(loading,new LinearLayout.LayoutParams(-1,-2));
+        TextView tip=text("DOMINA LA ARENA  •  RESERVA TU TURBO PARA ESCAPAR DEL REY",10,0xFFE9C77A);
+        content.addView(tip,new LinearLayout.LayoutParams(-1,-2));
         root.addView(splash,new FrameLayout.LayoutParams(-1,-1));
         setContentView(root);
         web.setWebChromeClient(new WebChromeClient(){@Override public void onProgressChanged(WebView v,int p){pageProgress=p;}});
@@ -104,7 +109,7 @@ public class MainActivity extends Activity {
         long elapsed=SystemClock.uptimeMillis()-started;
         int p=(int)Math.min(ready?100:Math.min(95,pageProgress),elapsed/50);
         bar.setProgress(p);loading.setText("CARGANDO ARENA · "+p+"%");
-        if(ready&&elapsed>=5000){bar.setProgress(100);splash.animate().alpha(0f).setDuration(300).withEndAction(()->splash.setVisibility(View.GONE)).start();}
+        if(ready){bar.setProgress(100);splash.animate().alpha(0f).setDuration(300).withEndAction(()->splash.setVisibility(View.GONE)).start();}
         else if(elapsed>15000){loading.setText("No terminó la carga. Toca aquí para reintentar.");loading.setOnClickListener(v->{loading.setOnClickListener(null);ready=false;pageProgress=0;started=SystemClock.uptimeMillis();web.reload();handler.post(this);});}
         else handler.postDelayed(this,50);
     }};
