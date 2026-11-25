@@ -1,6 +1,6 @@
 'use strict';
 const http=require('http'),{WebSocketServer}=require('ws'),G=require('./app/src/main/assets/engine'),crypto=require('crypto'),rooms=new Map();
-const server=http.createServer((q,r)=>{r.end('EVOLUTION SBN 2027 v1.2 online')});
+const server=http.createServer((q,r)=>{r.end('EVOLUTION SBN 2027 v1.3 online')});
 const wss=new WebSocketServer({server,maxPayload:2048,perMessageDeflate:false});
 wss.on('connection',ws=>{let room,id=crypto.randomUUID(),last=0;ws.on('error',()=>{});ws.on('message',raw=>{try{let m=JSON.parse(raw);if(!room&&m.type==='join'){let code=String(m.code||'').toUpperCase();if(!/^[A-Z0-9]{4,12}$/.test(code))return ws.close();if(!rooms.has(code)){if(rooms.size>=100)return ws.close();rooms.set(code,{s:G.world(),clients:new Map(),code});}let r=rooms.get(code);if(r.clients.size>=100){ws.send(JSON.stringify({error:'Sala llena'}));return ws.close();}room=r;r.clients.set(id,ws);G.spawn(r.s,id,String(m.name||'Jugador').slice(0,20));ws.send(JSON.stringify({id,code}));}else if(room&&m.type==='input'&&Date.now()-last>=20){last=Date.now();let p=room.s.p[id];if(p&&Number.isFinite(m.a)){p.t=Math.atan2(Math.sin(m.a),Math.cos(m.a));p.b=!!m.b;}}}catch{}});ws.on('close',()=>{if(room){room.clients.delete(id);delete room.s.p[id];if(!room.clients.size)rooms.delete(room.code);}});});
 // 20 simulation ticks/s; 10 snapshots/s, only nearby objects, integer coordinates.

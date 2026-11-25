@@ -12,8 +12,8 @@ function step(s){s.tick++;
  if(s.p[KING]&&s.tick>=s.kingUntil)delete s.p[KING];
  const ps=Object.values(s.p),dead=new Set(),grid=new Map(),fg=new Map(),eaten=new Set();
  for(let i=0;i<s.f.length;i++){const f=s.f[i],k=key(f[0],f[1]);let v=fg.get(k);if(!v)fg.set(k,v=[]);v.push(i);}
- const king=s.p[KING];if(king){let h=king.body[0],best=Infinity,v=null;for(const p of ps){if(p===king)continue;const d=dist(h,p.body[0]);if(d<best){best=d;v=p.body[0];}}if(v)king.t=Math.atan2(v[1]-h[1],v[0]-h[0]);if(h[0]<100||h[1]<100||h[0]>W-100||h[1]>W-100)king.t=Math.atan2(W/2-h[1],W/2-h[0]);}
- for(const p of ps){const boss=p.id===KING;let d=Math.atan2(Math.sin(p.t-p.a),Math.cos(p.t-p.a));p.a+=Math.max(boss?-.16:-.25,Math.min(boss?.16:.25,d));let h=p.body[0],boost=!boss&&p.b&&p.m>24,v=boss?9.2:boost?12:7;
+ const king=s.p[KING];if(king){let h=king.body[0],best=Infinity,v=null;for(const p of ps){if(p===king)continue;const d=dist(h,p.body[0]);if(d<best){best=d;v=p.body[0];}}if(v)king.t=Math.atan2(v[1]-h[1],v[0]-h[0]);if(h[0]<180||h[1]<180||h[0]>W-180||h[1]>W-180)king.t=Math.atan2(W/2-h[1],W/2-h[0]);}
+ for(const p of ps){const boss=p.id===KING;let d=Math.atan2(Math.sin(p.t-p.a),Math.cos(p.t-p.a));p.a+=Math.max(boss?-.24:-.25,Math.min(boss?.24:.25,d));let h=p.body[0],boost=!boss&&p.b&&p.m>24,v=boss?13.2:boost?12:7;
  if(boost){p.m=Math.max(24,p.m-.15);}
  h=[h[0]+Math.cos(p.a)*v,h[1]+Math.sin(p.a)*v];p.body.unshift(h);while(p.body.length>Math.floor(p.m))p.body.pop();if(h[0]<0||h[1]<0||h[0]>W||h[1]>W)dead.add(p.id);
  const cx=Math.floor(h[0]/CELL),cy=Math.floor(h[1]/CELL),r=boss?33:23;
