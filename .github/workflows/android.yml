@@ -37,7 +37,7 @@ jobs:
           unset SIGNING_BUNDLE
           signer="$ANDROID_HOME/build-tools/35.0.0/apksigner"
           mkdir -p "$RUNNER_TEMP/evolution-apk"
-          "$signer" sign --ks "$signing_dir/evolution.p12" --ks-type PKCS12 --ks-key-alias evolution --ks-pass "file:$signing_dir/password.txt" --key-pass "file:$signing_dir/password.txt" --v4-signing-enabled false --out "$RUNNER_TEMP/evolution-apk/app-debug.apk" app/build/outputs/apk/debug/app-debug.apk
+          "$signer" sign --ks "$signing_dir/evolution.p12" --ks-type PKCS12 --ks-key-alias evolution --ks-pass "file:$signing_dir/password.txt" --v4-signing-enabled false --out "$RUNNER_TEMP/evolution-apk/app-debug.apk" app/build/outputs/apk/debug/app-debug.apk
           "$signer" verify --verbose --print-certs "$RUNNER_TEMP/evolution-apk/app-debug.apk"
       - uses: actions/upload-artifact@v4
         with:
