@@ -69,7 +69,7 @@ public class MainActivity extends Activity {
     private volatile int voiceGeneration=0;
     private void voiceStatus(String msg){if(web!=null&&!closed)web.evaluateJavascript("window.Voice52?.status("+org.json.JSONObject.quote(msg)+")",null);}
     private void stopVoice(){voiceRecording=false;voiceGeneration++;android.media.AudioRecord r=voiceRecorder;if(r!=null)try{r.stop();}catch(Exception ignored){} }
-    private void startVoice(){if(!foreground||closed||voiceRecording)return;
+    private void startVoice(){if(!foreground||closed){voiceStatus("Micrófono no disponible");return;}if(voiceRecording)return;
         if(checkSelfPermission(android.Manifest.permission.RECORD_AUDIO)!=android.content.pm.PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO},52);voiceStatus("Autoriza el micrófono y vuelve a pulsar");return;}
         voiceRecording=true;final int generation=++voiceGeneration;
         new Thread(()->{android.media.AudioRecord r=null;android.media.audiofx.AcousticEchoCanceler echo=null;try{
@@ -77,8 +77,8 @@ public class MainActivity extends Activity {
             r=new android.media.AudioRecord(android.media.MediaRecorder.AudioSource.VOICE_COMMUNICATION,8000,android.media.AudioFormat.CHANNEL_IN_MONO,android.media.AudioFormat.ENCODING_PCM_16BIT,Math.max(3200,min));
             if(r.getState()!=android.media.AudioRecord.STATE_INITIALIZED)throw new IllegalStateException();
             if(android.media.audiofx.AcousticEchoCanceler.isAvailable()){echo=android.media.audiofx.AcousticEchoCanceler.create(r.getAudioSessionId());if(echo!=null)echo.setEnabled(true);}
-            if(!voiceRecording||generation!=voiceGeneration)return;voiceRecorder=r;r.startRecording();short[] samples=new short[400];byte[] pcm=new byte[400];int pos=0;
-            while(voiceRecording&&generation==voiceGeneration){int n=r.read(samples,pos,400-pos);if(n<=0)break;pos+=n;if(pos<400)continue;pos=0;for(int i=0;i<400;i++)pcm[i]=(byte)((samples[i]>>8)+128);String b64=android.util.Base64.encodeToString(pcm,android.util.Base64.NO_WRAP);handler.post(()->{if(voiceRecording&&generation==voiceGeneration&&foreground&&web!=null)web.evaluateJavascript("window.Voice52?.frame('"+b64+"')",null);});}
+            if(!voiceRecording||generation!=voiceGeneration)return;voiceRecorder=r;r.startRecording();handler.post(()->{if(voiceRecording&&generation==voiceGeneration&&foreground&&web!=null)web.evaluateJavascript("window.Voice52?.ready()",null);});short[] samples=new short[400];byte[] pcm=new byte[400];int pos=0;
+            while(voiceRecording&&generation==voiceGeneration){int n=r.read(samples,pos,400-pos);if(n<=0){handler.post(()->{if(generation==voiceGeneration)voiceStatus("Micrófono interrumpido");});break;}pos+=n;if(pos<400)continue;pos=0;for(int i=0;i<400;i++)pcm[i]=(byte)((samples[i]>>8)+128);String b64=android.util.Base64.encodeToString(pcm,android.util.Base64.NO_WRAP);handler.post(()->{if(voiceRecording&&generation==voiceGeneration&&foreground&&web!=null)web.evaluateJavascript("window.Voice52?.frame('"+b64+"')",null);});}
         }catch(Exception e){handler.post(()->{if(generation==voiceGeneration)voiceStatus("Micrófono no disponible");});}finally{if(echo!=null)echo.release();if(r!=null){try{r.stop();}catch(Exception ignored){}r.release();}if(voiceRecorder==r)voiceRecorder=null;if(generation==voiceGeneration)voiceRecording=false;}},"EvolutionVoice").start();
     }
     public class GameBridge {
@@ -169,7 +169,7 @@ public class MainActivity extends Activity {
     }};
     private TextView text(String s,int size,int color){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER);return t;}
     private int dp(int v){return Math.round(v*getResources().getDisplayMetrics().density);}
-    @Override protected void onPause(){super.onPause();foreground=false;stopVoice();releaseBoss();updateAudio();if(web!=null)web.onPause();}
+    @Override protected void onPause(){super.onPause();foreground=false;stopVoice();if(web!=null)web.evaluateJavascript("window.Voice52?.off()",null);releaseBoss();updateAudio();if(web!=null)web.onPause();}
     @Override protected void onResume(){super.onResume();foreground=true;updateAudio();if(web!=null){web.onResume();web.evaluateJavascript("if(typeof music==='function')music()",null);}}
     @Override protected void onDestroy(){closed=true;stopVoice();releaseBoss();releaseAudio();handler.removeCallbacksAndMessages(null);if(web!=null){web.stopLoading();((android.view.ViewGroup)web.getParent()).removeView(web);web.destroy();}super.onDestroy();}
 }
