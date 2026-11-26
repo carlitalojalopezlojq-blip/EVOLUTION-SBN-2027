@@ -24,7 +24,7 @@ R.fruit31=function(f,x,y,ctx,t,spec){
  if(!mesh){let r=fruitBuilder37||(fruitBuilder37=new root.Evolution3D.Renderer());r.count=0;r.on=true;r.pixel=1;r.quality=this.quality;fruitBase37.call(r,[0,0,0,f[3]],0,0,ctx37,0,spec);mesh=r.buf.slice(0,r.count*13);if(fruitMesh37.size>=192)fruitMesh37.clear();fruitMesh37.set(key,mesh);}
  const n=mesh.length/13;if(!this.reserve35(n))return false;const m=this.transform(ctx),s=this.pixel,scale=(7+Math.min(8,Math.max(0,f[2]))*.48)/7,bob=Math.sin(t*.003+x*.012)*.7;let dst=this.buf,k=this.count*13;
  const a=m.a/s,b=m.b/s,c=m.c/s,d=m.d/s,e=(x*m.a+y*m.c+m.e)/s,f0=(x*m.b+y*m.d+m.f)/s,z=m.s/s;
- for(let j=0;j<mesh.length;j+=13,k+=13){const px=mesh[j]*scale,py=mesh[j+1]*scale;dst[k]=px*a+py*c+e;dst[k+1]=px*b+py*d+f0;dst[k+2]=(mesh[j+2]*scale+bob)*z;for(let i=3;i<13;i++)dst[k+i]=mesh[j+i];dst[k+9]=m.alpha;}
+ for(let j=0;j<mesh.length;j+=13,k+=13){const px=mesh[j]*scale,py=mesh[j+1]*scale;dst[k]=px*a+py*c+e;dst[k+1]=px*b+py*d+f0;dst[k+2]=(mesh[j+2]*scale+bob)*z;dst[k+3]=mesh[j+3];dst[k+4]=mesh[j+4];dst[k+5]=mesh[j+5];dst[k+6]=mesh[j+6];dst[k+7]=mesh[j+7];dst[k+8]=mesh[j+8];dst[k+10]=mesh[j+10];dst[k+11]=mesh[j+11];dst[k+12]=mesh[j+12];dst[k+9]=m.alpha;}
  this.count+=n;return true;
 };
 root.Evolution3D.palettes=palettes;
