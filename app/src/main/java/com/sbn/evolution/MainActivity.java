@@ -65,6 +65,7 @@ public class MainActivity extends Activity {
         } catch(Exception e){android.util.Log.e("EvolutionAudio","Boss sound failed",e);releaseBoss();}
     }
     public class GameBridge {
+        @JavascriptInterface public void shareRoom(String code){if(code==null||!code.matches("[A-Z0-9]{4,12}"))return;handler.post(()->{android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND);send.setType("text/plain");send.putExtra(android.content.Intent.EXTRA_TEXT,"EVOLUTION SBN 2027 · Sala "+code);startActivity(android.content.Intent.createChooser(send,"Compartir sala"));});}
         @JavascriptInterface public void bossSound(String type,float volume){handler.post(()->playBoss(type,volume));}
         @JavascriptInterface public void stopBossSound(){handler.post(()->releaseBoss());}
         @JavascriptInterface public void bossVolume(float value){handler.post(()->{if(bossPlayer!=null){float v=Math.max(0f,Math.min(1f,value));bossPlayer.setVolume(v,v);}});}
