@@ -14,8 +14,8 @@ const worlds=[
  ['alien','Dimensión del vacío',[['electric','Parásito cósmico','#9567de'],['shadow','Devorador de estrellas','#6c499b'],['ancient','Aberración del vacío','#a58aa6']]],
  ['temple','Templo del fin',[['fire','Apocalipsis rubí','#d14154'],['ice','Serafín del terror','#72bcd7'],['ancient','KAION · Devorador de mundos','#a66dcd']]]
 ].map(([arena,name,bosses],i)=>({arena,name,bosses:bosses.map(([type,name,c],j)=>({type,name,c,slot:j,form74:`king73_world${i+1}_${j+1}`}))}));
-const partySize=n=>n===4?4:2;
-function canStart(r){const n=r.settings.party74;return (n===2||n===4)&&r.members.size===n&&r.clients.size===n&&[...r.members].every(([id,m])=>r.clients.has(id)&&m.ready===true);}
+const partySize=n=>n===1?1:n===4?4:2;
+function canStart(r){const n=r.settings.party74;return [1,2,4].includes(n)&&r.members.size===n&&r.clients.size===n&&[...r.members].every(([id,m])=>r.clients.has(id)&&m.ready===true);}
 function configure(r,n){r.settings={arena:worlds[0].arena,mode:'invasion',bots:0,difficulty:'normal',advanced:false,party74:partySize(n)};r.expedition74=true;return r;}
 function init(v,n){v.expedition74={world:1,party:partySize(n),cleared:[],portal:null,entered:[],attempt:0};}
 const secret={arena:'alien',name:'Dimensión prohibida',bosses:[{type:'ancient',name:'NÉMESIS · Horror del origen',c:'#a654e9',slot:0,form74:'king73_nemesis80'}]};

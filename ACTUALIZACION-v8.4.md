@@ -1,0 +1,8 @@
+# v8.4 — Expedición solitaria online
+Parche acumulativo sobre v8.2: incluye la búsqueda e inspección de perfiles de v8.3. Actualizar APK y servidor.
+- Modos: solitario (1), dúo (2), escuadra (4). La selección se recuerda. El botón Jugar solo online crea una sala privada individual; marcar Estoy listo e Iniciar. Sin jugadores adicionales ni bots aliados.
+- El servidor valida capacidad, rechaza entradas de otros jugadores e impide invitaciones a salas individuales. Las invitaciones y la búsqueda de equipos siguen disponibles en dúo y escuadra.
+- Misma expedición: cinco minutos iniciales, tres de combate, dos de reintento; portales individuales conservan la masa. Diez mundos y posibilidad del mundo secreto 11. HP de reyes escala con el tamaño del equipo (900 HP en el primer mundo individual, 1800 en dúo, 3600 en escuadra, sin pesadilla). Se conservan fases, elementos, roles y rarezas. El rescate de aliados no aplica en solitario, pero se mantiene la reaparición habitual.
+- Recompensas online, XP, huevos y transformaciones para cuentas registradas; mismos criterios, probabilidades y tablas que v8.2. La clasificación existente sigue siendo compartida. El límite de cuatro salas concurrentes del servidor se conserva, por lo que muchas expediciones individuales pueden llenarlo.
+- Incluye búsqueda propia por ID, inspección de perfiles y avatar RUBY ORIGIN de v8.3. Sin migraciones nuevas.
+- Nueve archivos de pruebas locales seleccionados pasan, incluidos dos de solitario (simulación de reglas y sockets). No se probó con Android, Render ni Neon reales ni se midió el equilibrio del combate con jugadores reales.
