@@ -1,7 +1,7 @@
 'use strict';
 const O=require('./origin53');
 const cap=100, threshold=l=>100*(Math.max(1,Math.min(cap,l))-1)*Math.max(1,Math.min(cap,l))/2;
-function level(xp,founder=false){xp=Math.max(0,Number(xp)||0);let l=founder?100:Math.min(100,Math.floor((1+Math.sqrt(1+xp/12.5))/2));return {level60:l,xp60:xp,nextXp60:l===100?null:threshold(l+1),baseXp60:threshold(l),founderMax60:founder};}
+function level(xp,founder=false){xp=Math.max(0,Number(xp)||0);let l=founder?100:Math.min(100,Math.floor((1+Math.sqrt(1+xp/12.5))/2));return {level60:l,xp60:xp,nextXp60:l===100?null:threshold(l+1),baseXp60:threshold(l),founderMax60:founder,prestige86:Math.max(0,Math.floor((xp-threshold(100))/100000)),prestigeNext86:threshold(100)+(Math.max(0,Math.floor((xp-threshold(100))/100000))+1)*100000};}
 const rank=p=>p>=3000?'Legendario':p>=1500?'Maestro':p>=750?'Diamante':p>=350?'Oro':p>=100?'Plata':'Bronce';
 const missions=[{id:'time',label:'Sobrevive 10 minutos',goal:600,reward:250,field:'seconds'},{id:'games',label:'Completa 3 partidas de al menos 30 s',goal:3,reward:150,field:'games'},{id:'win',label:'Gana una partida competitiva',goal:1,reward:500,field:'wins'},{id:'mass',label:'Alcanza 300 de masa',goal:300,reward:200,field:'best'}];
 const SCHEMA=`
