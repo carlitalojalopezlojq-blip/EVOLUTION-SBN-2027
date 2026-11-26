@@ -33,5 +33,7 @@ function sample(r,t,dt,boss){
  r.mobileTier37=tier;r.performanceScale35=scale;r.perfStats37={fps:Math.round(1000/avg),slow:Math.round(100*bad),tier,scale,boss};s.at=t;s.n=0;s.sum=0;s.slow=0;
 }
 function reset(r){r.perf35=null;r.performanceScale35=1;r.mobileTier37=0;}
-root.EvolutionFPS35={pattern,terrain,sample,reset};
+// Keep important pickups as 3D even in reduced detail unless battery/low is selected.
+function richFruit(quality,tier,battery,kind){if(battery||quality==='low'||tier>=3)return false;return tier<2||kind>=49;}
+root.EvolutionFPS35={pattern,terrain,sample,reset,richFruit};
 })(window);

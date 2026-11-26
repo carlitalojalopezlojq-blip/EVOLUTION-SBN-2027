@@ -2,7 +2,7 @@
 (function(root){'use strict';
 const empty=()=>({frames:[],draw:[],step:[],flush:[],verts:[],terrain:[]});
 let samples=empty(),start=0,prev=0,frameFlush=0,frameVerts=0,frameTerrain=0,enabled=true,summary=null;
-const add=(arr,x)=>{if(Number.isFinite(x)&&x>=0)arr.push(x);};
+const add=(arr,x)=>{if(Number.isFinite(x)&&x>=0){if(arr.length>=1024)arr.splice(0,512);arr.push(x);}};
 const stat=a=>{if(!a.length)return null;let b=a.slice().sort((x,y)=>x-y);return {avg:a.reduce((s,x)=>s+x,0)/a.length,p95:b[Math.ceil(b.length*.95)-1],max:b[b.length-1]};};
 function begin(t){if(!enabled)return;start=performance.now();frameFlush=frameVerts=frameTerrain=0;if(prev&&t-prev<500)add(samples.frames,t-prev);prev=t;}
 function end(){if(!enabled||!start)return;add(samples.draw,performance.now()-start);add(samples.flush,frameFlush);add(samples.verts,frameVerts);add(samples.terrain,frameTerrain);start=0;}
