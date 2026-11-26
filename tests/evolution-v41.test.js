@@ -1,4 +1,6 @@
 'use strict';
+// Stable spawn layout for reproducible integration tests, not production randomness.
+let fixtureSeed=123;Math.random=()=>((fixtureSeed=(fixtureSeed*1664525+1013904223)>>>0)/4294967296);
 const assert=require('node:assert/strict'),N=require('../app/src/main/assets/online41');
 const q={id:'x',a:0,m:30,energy:100,body:Array.from({length:100},(_,i)=>[500-i*7,500])};
 q.parts=[[0,q.body.slice(0,32)],[60,q.body.slice(60,100)]];const visible=p=>p&&p[0]>=460&&p[0]<=520;

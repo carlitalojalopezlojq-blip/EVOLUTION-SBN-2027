@@ -1,4 +1,6 @@
 'use strict';
+// Stable spawn layout for reproducible integration tests, not production randomness.
+let fixtureSeed=123;Math.random=()=>((fixtureSeed=(fixtureSeed*1664525+1013904223)>>>0)/4294967296);
 // Test server handlers with in-memory WebSocket doubles. Real TLS and transport must be tested after deployment.
 const assert=require('node:assert/strict'),{EventEmitter}=require('node:events'),Module=require('node:module');
 const realLoad=Module._load,realInterval=global.setInterval;let wss,step,health;
