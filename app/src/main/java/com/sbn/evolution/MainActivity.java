@@ -27,6 +27,7 @@ import android.widget.*;
 public class MainActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private WebView web;
+    private boolean suppressGameLongPress;
     private MediaPlayer musicPlayer, bossPlayer;
     private boolean foreground, wantsAudio, bossAudio;
     private float musicVolume=.65f;
@@ -82,6 +83,7 @@ public class MainActivity extends Activity {
         }catch(Exception e){handler.post(()->{if(generation==voiceGeneration)voiceStatus("Micrófono no disponible");});}finally{if(echo!=null)echo.release();if(r!=null){try{r.stop();}catch(Exception ignored){}r.release();}if(voiceRecorder==r)voiceRecorder=null;if(generation==voiceGeneration)voiceRecording=false;}},"EvolutionVoice").start();
     }
     public class GameBridge {
+        @JavascriptInterface public void gameLongPressBlocked(boolean blocked){handler.post(()->suppressGameLongPress=blocked);}
         @JavascriptInterface public void voice52(boolean on){handler.post(()->{if(on)startVoice();else stopVoice();});}
 
         @JavascriptInterface public void shareRoom(String code){if(code==null||!code.matches("[A-Z0-9]{4,12}"))return;handler.post(()->{android.content.Intent send=new android.content.Intent(android.content.Intent.ACTION_SEND);send.setType("text/plain");send.putExtra(android.content.Intent.EXTRA_TEXT,"EVOLUTION SBN 2027 · Sala "+code);startActivity(android.content.Intent.createChooser(send,"Compartir sala"));});}
@@ -119,6 +121,11 @@ public class MainActivity extends Activity {
         root.setBackgroundColor(0xFF07121F);
         web = new WebView(this);
         web.setBackgroundColor(0xFF07121F);
+        web.setOnLongClickListener(v -> {
+            if(!suppressGameLongPress)return false;
+            WebView.HitTestResult hit=web.getHitTestResult();
+            return hit==null||hit.getType()!=WebView.HitTestResult.EDIT_TEXT_TYPE;
+        });
         web.getSettings().setJavaScriptEnabled(true);
         web.getSettings().setDomStorageEnabled(true);
         web.getSettings().setMediaPlaybackRequiresUserGesture(false);
@@ -169,6 +176,18 @@ public class MainActivity extends Activity {
     }};
     private TextView text(String s,int size,int color){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER);return t;}
     private int dp(int v){return Math.round(v*getResources().getDisplayMetrics().density);}
+    @Override public void onBackPressed(){
+        if(web==null||closed||!ready)return;
+        web.evaluateJavascript("typeof window.handleAndroidBack87==='function' && window.handleAndroidBack87()", result -> {
+            if("false".equals(result)&&!closed&&!isFinishing()){
+                new android.app.AlertDialog.Builder(this)
+                    .setTitle("Salir del juego")
+                    .setMessage("¿Quieres cerrar EVOLUTION SBN 2027?")
+                    .setNegativeButton("Regresar",null)
+                    .setPositiveButton("Salir",(dialog,which)->finish()).show();
+            }
+        });
+    }
     @Override protected void onPause(){super.onPause();foreground=false;stopVoice();if(web!=null)web.evaluateJavascript("window.Voice52?.off()",null);releaseBoss();updateAudio();if(web!=null)web.onPause();}
     @Override protected void onResume(){super.onResume();foreground=true;updateAudio();if(web!=null){web.onResume();web.evaluateJavascript("if(typeof music==='function')music()",null);}}
     @Override protected void onDestroy(){closed=true;stopVoice();releaseBoss();releaseAudio();handler.removeCallbacksAndMessages(null);if(web!=null){web.stopLoading();((android.view.ViewGroup)web.getParent()).removeView(web);web.destroy();}super.onDestroy();}

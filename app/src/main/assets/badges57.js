@@ -5,8 +5,8 @@ function role(p){return p?.founder53===true||p?.badge57==='F'?'F':p?.badge57==='
 function nameLine(el,name,r,prefix='',suffix=''){const span=make('span',String(name??'Jugador'),r==='F'?'nameF81':'');el.append(prefix,span);append(el,r);el.append(suffix);return el;}
 function localRole(p){return p&&p.id==='me'&&accountToken&&cloudProfile?role(cloudProfile):null;}
 function append(el,r){const b=badge(r);if(b)el.append(' ',b);}
-function rank(el,heading,rows){const key=JSON.stringify([heading,rows]);if(el.dataset.badgeKey57===key)return;el.dataset.badgeKey57=key;el.replaceChildren(make('div',heading));for(const [i,r] of rows.entries()){const line=make('span',`${i+1}. ${r[0]}`,'rankLine57');append(line,r[2]);line.append(` · ${r[1]}`);el.append(line);}}
-function results(el,rows,format){el.replaceChildren();for(const r of rows){const line=make('div',r.name,'badgeRow57');append(line,role(r));line.append(make('span',format(r)));el.append(line);}}
+function rank(el,heading,rows){const key=JSON.stringify([heading,rows]);if(el.dataset.badgeKey57===key)return;el.dataset.badgeKey57=key;el.replaceChildren(make('div',heading));for(const [i,r] of rows.entries()){const line=make('span',null,'rankLine57');nameLine(line,r[0],r[2],`${i+1}. `,` · ${r[1]}`);el.append(line);}}
+function results(el,rows,format){el.replaceChildren();for(const r of rows){const line=make('div',null,'badgeRow57');nameLine(line,r.name,role(r));line.append(make('span',format(r)));el.append(line);}}
 window.Badges57={badge,role,append,rank,results,nameLine,localRole};
 // Server credentials come only from cloudRequest; UI visibility is not authorization.
 const panel=make('div',null,'badgeAdmin57'),open=make('button','♛ Panel del fundador');open.type='button';open.hidden=true;panel.hidden=true;const section=E('profile');section.append(open,panel);
