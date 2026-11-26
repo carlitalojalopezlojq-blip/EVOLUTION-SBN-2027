@@ -1,0 +1,12 @@
+'use strict';
+const G=require('./app/src/main/assets/engine');
+const modes=['duos','infection','titan'];
+const minimum=m=>m==='duos'?4:m==='infection'?3:m==='titan'?2:2;
+const capacity=m=>m==='duos'?4:m==='duel'?2:10;
+const humans=s=>Object.values(s.p).filter(p=>!G.isKing(p)&&!G.isBot(p));
+function setup(s){if(!modes.includes(s.mode))return;s.nextKing=Number.MAX_SAFE_INTEGER;s.newMode60=true;const p=humans(s);if(s.mode==='duos'){p.forEach((q,i)=>{q.team=Math.floor(i/2);q.c=q.team?'#ff527d':'#49aaff';});}if(s.mode==='infection'){p.forEach((q,i)=>{q.team=i===0?1:0;q.c=q.team?'#85e74b':'#49aaff';});s.end60=s.tick+2400;}if(s.mode==='titan'){for(const q of p)q.team=0;const k=G.spawn(s,G.KING,'TITÁN ANCESTRAL','#9d55e6');k.type='ancient';k.expires=Number.MAX_SAFE_INTEGER;k.hp=k.maxHp=100+50*p.length;s.end60=s.tick+3600;}}
+function finish(s,team,name){s.winner={id:null,team60:team,name};}
+function tick(s){if(!s.newMode60||s.winner)return;const p=humans(s);if(s.mode==='duos'){const teams=new Set(p.map(q=>q.team));if(teams.size<=1)finish(s,teams.size?[...teams][0]:null,teams.size?`Dúo ${[...teams][0]===0?'azul':'rojo'}`:'Sin supervivientes');}if(s.mode==='infection'){const inf=p.filter(q=>q.team===1);for(const q of p.filter(q=>q.team===0))if(inf.some(k=>Math.hypot(k.body[0][0]-q.body[0][0],k.body[0][1]-q.body[0][1])<54)){q.team=1;q.c='#85e74b';}if(!p.some(q=>q.team===0))finish(s,p.length?1:null,p.length?'Infectados':'Sin supervivientes');else if(!p.some(q=>q.team===1)||s.tick>=s.end60)finish(s,0,'Supervivientes');}if(s.mode==='titan'){const k=s.p[G.KING];if(!k||k.hp<=0){if(k)delete s.p[G.KING];finish(s,0,'Equipo cazador');return;}if(!p.length||s.tick>=s.end60){finish(s,null,'El titán venció');return;}for(const q of p){const d=Math.hypot(q.body[0][0]-k.body[0][0],q.body[0][1]-k.body[0][1]);if(q.b&&q.energy>1&&d<180&&d>55&&s.tick-(q.hit60??-20)>=10){q.hit60=s.tick;k.hp=Math.max(0,k.hp-5);}}if(k.hp===0){delete s.p[G.KING];finish(s,0,'Equipo cazador');}}}
+function event(s){if(!s.newMode60)return {};const p=humans(s),k=s.p[G.KING];return {mode60:s.mode,remaining60:s.end60?Math.max(0,Math.ceil((s.end60-s.tick)/20)):null,infected60:p.filter(q=>q.team===1).length,alive60:p.length,titanHp60:k?.hp,titanMax60:k?.maxHp};}
+function won(s,id,mem){return s.winner?.id===id||s.winner?.team60!=null&&mem.team60===s.winner.team60;}
+module.exports={modes,minimum,capacity,setup,tick,event,won};

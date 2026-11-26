@@ -7,6 +7,7 @@ const query=async(sql,p=[])=>{let rows=[];
  if(sql===C.SCHEMA)assert(sql.includes(B.SCHEMA));
  else if(sql.startsWith('SELECT name FROM evo44_sessions')){if(tokens.has(p[0]))rows=[{name:tokens.get(p[0])}];}
  else if(sql.startsWith('SELECT skin45,skins45')||sql.startsWith('SELECT name,best,xp,coins'))rows=users.filter(x=>x.name===p[0]).map(x=>({...x}));
+ else if(sql.startsWith('SELECT name FROM evo60_suspensions')){}
  else if(sql.startsWith('SELECT target FROM')||sql.startsWith('SELECT friend FROM')||sql.startsWith('SELECT sender AS')||sql.startsWith('SELECT mass,seconds')){}
  else if(sql.startsWith('SELECT name,public_id51,badge_verified57 FROM evo44_users WHERE badge_verified57'))rows=users.filter(x=>x.badge_verified57&&x.name!==p[0]&&x.name>p[1]).map(x=>({...x}));
  else if(sql.startsWith('SELECT name,public_id51,badge_verified57 FROM evo44_users WHERE name='))rows=users.filter(x=>x.name===p[0]||x.public_id51===p[1]).map(x=>({...x}));

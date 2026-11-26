@@ -1,0 +1,17 @@
+# EVOLUTION SBN 2027 · 6.0 — Evolución total (beta)
+
+Parche incremental sobre v5.10. No sustituye claves, usuarios, firma, datos existentes ni archivos de configuración. Actualiza cliente y servidor juntos. Neon añade tablas no destructivas automáticamente al iniciar el servidor.
+
+- Niveles online: 1–100, XP acumulada histórica, nivel n requiere 50*n*(n-1) XP. Fundador autenticado (nombre + UUID reservado) siempre nivel 100, sin modificar su XP. Otros jugadores pueden llegar a 100 jugando. Invitados/entrenamiento offline no progresan en la cuenta online.
+- Perfil y lobby muestran nivel, barra de XP y estadísticas. Misiones diarias en hora de Perú: duración, partidas, victoria competitiva, masa. Recompensa de monedas reclamable una vez por misión/día. Temporada mensual UTC: puntos por partidas competitivas de al menos 10 segundos y recompensa por la temporada anterior (100 puntos mínimo, 200–2000 monedas). La tienda usa precios del servidor; nuevas skins de colores con efectos visuales. La skin del fundador se asigna automáticamente en el servidor (equipos conservan colores de equipo). 
+- Cinco etapas visuales por masa (0, 500, 1500, 5000, 10000), ornamentos y aura. Conserva física y habilidades anteriores. No son nuevos modelos 3D completos.
+- Modos beta online en Partida rápida: Dúos 2 vs 2 (4 jugadores; equipos por orden de llegada, 2 por lado), Infección (mínimo 3; contacto por proximidad, 120 s), Cacería del titán (mínimo 2; acercarse con turbo para dañar al jefe, 180 s). Práctica hasta reunir jugadores, no se guarda XP de práctica. No existe selección garantizada de compañero ni emparejamiento por habilidad; los tres modos nuevos aún no están en salas privadas. Las salas y torneos existentes permanecen disponibles. Los jugadores eliminados antes del final guardan su resultado en ese momento, no reciben victoria retroactiva.
+- Panel fundador: anuncios persistentes, difusión a jugadores conectados en partida, regalos, suspensiones temporales de cuenta, lista de cuentas en partida, reportes recientes e historial de estas acciones. El control de permisos es del servidor. Suspensión no bloquea acceso como invitado. Conserva panel V. Los eventos se pueden anunciar, los torneos existentes se pueden crear; no hay calendario automatizado de eventos. No se añaden compras de avatares o marcos en esta versión.
+- Conserva ajustes previos de sensibilidad, tamaño/posición, calidad, FPS, batería y recuperación de conexión. Añade indicador ping y guía de inicio. 
+- Se han ejecutado 36 archivos de pruebas Node (simulación SQL, reglas de modos y regresiones). No se compiló APK ni se probó Render/Neon reales ni multijugador Android. Hacer copia de la base de datos antes del despliegue y verificar registro, login, permisos, recompensas, partida online y rendimiento. No borrar la versión instalada.
+
+Aplicar desde el repositorio limpio:
+
+```sh
+cd ~/EVOLUTION-SBN-2027 && test -z "$(git status --porcelain)" && unzip -o ~/storage/downloads/EVOLUTION-v6.0-parche.zip && git add Dockerfile server.js cloud44.js competitive45.js practice56.js modes60.js progression60.js app/build.gradle app/src/main/assets/index.html app/src/main/assets/engine.js app/src/main/assets/founder54.js app/src/main/assets/progression60.js app/src/main/assets/progression60.css tests/evolution-v441.test.js tests/evolution-v57.test.js tests/evolution-v60.test.js ACTUALIZACION-v6.0.md && git commit -m "v6.0 Evolucion total beta" && git push origin main
+```
