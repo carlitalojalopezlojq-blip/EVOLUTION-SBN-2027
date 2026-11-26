@@ -5,7 +5,27 @@ const clamp=(x,l,h)=>Math.max(l,Math.min(h,x)), angle=(a,b)=>Math.atan2(Math.sin
 function ranges(q,old,visible){const result=[];for(const [offset,part] of q.parts||[]){let start=-1;for(let i=0;i<part.length;i++){let j=offset+i;if(!q.body[j])continue;if(visible(q.body[j])||visible(old?.body[j])){if(start<0)start=Math.max(0,i-2);}else if(start>=0){result.push([offset+start,offset+Math.min(part.length,i+2)]);start=-1;}}if(start>=0)result.push([offset+start,offset+part.length]);}return result;}
 function estimate(q,dir,boost,age,ping,bounds){const h=q.body[0],maxAge=200;if(!h||age>350)return {head:h,angle:q.a};let steps=clamp(Math.max(0,age)+clamp((ping??70)/2,35,120),0,maxAge)/50;let x=h[0],y=h[1],a=q.a;let v=boost&&q.energy>1?12:7; // only visual; hazards and collisions are resolved by server
 for(let k=0;k<Math.ceil(steps);k++){let f=Math.min(1,steps-k);a=physics.turnToward59(a,dir,q.m,f);x+=Math.cos(a)*v*f;y+=Math.sin(a)*v*f;}let [lo,hi]=bounds||[0,4000];return {head:[clamp(x,lo,hi),clamp(y,lo,hi)],angle:a};}
-class Motion{constructor(){this.reset();}reset(){this.head=null;this.rotation=null;this.at=null;this.id=null;this.life=null;this.lastArrival=null;this.interval=100;this.shift=[0,0];}arrival(t){if(this.lastArrival!==null){let gap=t-this.lastArrival;if(gap>25&&gap<300)this.interval=this.interval*.75+gap*.25;}this.lastArrival=t;return clamp(this.interval,65,150);}frame(q,base,t,stamp,dir,boost,ping,bounds){const e=estimate(q,dir,boost,t-stamp,ping,bounds);let dt=clamp(t-(this.at??t-16),1,50),k=1-Math.exp(-dt/12);if(this.id!==q.id||this.life!==q.life||!this.head||Math.hypot(e.head[0]-this.head[0],e.head[1]-this.head[1])>150){this.head=e.head.slice();this.rotation=e.angle;}else{this.head[0]+=(e.head[0]-this.head[0])*k;this.head[1]+=(e.head[1]-this.head[1])*k;this.rotation=physics.turnToward59(this.rotation,dir,q.m,dt/50);}this.at=t;this.id=q.id;this.life=q.life;let dx=this.head[0]-base[0],dy=this.head[1]-base[1],len=Math.hypot(dx,dy);if(len>85){dx*=85/len;dy*=85/len;}this.shift=[dx,dy];return this.rotation;}point(p,i){let k=Math.max(0,1-i/16);return [p[0]+this.shift[0]*k,p[1]+this.shift[1]*k];}}
+class Motion{
+ constructor(){this.reset();}
+ reset(){this.head=null;this.rotation=null;this.at=null;this.id=null;this.life=null;this.lastArrival=null;this.interval=100;this.shift=[0,0];}
+ arrival(t){if(this.lastArrival!==null){let gap=t-this.lastArrival;if(gap>25&&gap<300)this.interval=this.interval*.75+gap*.25;}this.lastArrival=t;return clamp(this.interval,65,150);}
+ frame(q,base,t,stamp,dir,boost,ping,bounds){
+  const e=estimate(q,serverHeading(q),q.b===true,t-stamp,ping,bounds),dt=clamp(t-(this.at??t-16),1,50),[lo,hi]=bounds||[0,4000];
+  if(this.id!==q.id||this.life!==q.life||!this.head||Math.hypot(e.head[0]-this.head[0],e.head[1]-this.head[1])>150){const first=estimate(q,dir,boost,t-stamp,ping,bounds);this.head=first.head.slice();this.rotation=first.angle;}
+  else{
+   // Advance continuously in the current input direction, never replay a new turn into an old snapshot.
+   this.rotation=physics.turnToward59(this.rotation,dir,q.m,dt/50);
+   const speed=(boost&&q.energy>1?12:7)*dt/50;
+   let x=this.head[0]+Math.cos(this.rotation)*speed,y=this.head[1]+Math.sin(this.rotation)*speed;
+   // Bounded reconciliation: a normal packet must not drag the displayed head backwards.
+   let dx=e.head[0]-x,dy=e.head[1]-y,len=Math.hypot(dx,dy),correction=Math.min(len*(1-Math.exp(-dt/95)),speed*.45);
+   if(len>0){x+=dx/len*correction;y+=dy/len*correction;}
+   this.head=[clamp(x,lo,hi),clamp(y,lo,hi)];
+  }
+  this.at=t;this.id=q.id;this.life=q.life;let dx=this.head[0]-base[0],dy=this.head[1]-base[1],len=Math.hypot(dx,dy);if(len>85){dx*=85/len;dy*=85/len;this.head=[base[0]+dx,base[1]+dy];}this.shift=[dx,dy];return this.rotation;
+ }
+ point(p,i){let k=Math.max(0,1-i/16);return [p[0]+this.shift[0]*k,p[1]+this.shift[1]*k];}
+}
 function cameraFactor59(dt,online){return 1-Math.exp(-clamp(dt,1,100)/(online?20:45));}
 function serverHeading(q){return Number.isFinite(q.t)?q.t:Number.isFinite(q.a)?q.a:0;}
 const api={ranges,estimate,Motion,serverHeading,cameraFactor59};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.EvolutionOnline41=api;
