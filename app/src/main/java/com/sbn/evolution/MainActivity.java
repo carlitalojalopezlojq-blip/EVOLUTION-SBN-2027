@@ -31,21 +31,24 @@ public class MainActivity extends Activity {
     private boolean foreground, wantsAudio, bossAudio;
     private float musicVolume=.65f;
     private String playingAsset="", requestedAsset="music.mp3";
+    private boolean musicPrepared;
     private void updateAudio(){
-        if(!foreground || !wantsAudio || closed){if(musicPlayer!=null && musicPlayer.isPlaying())musicPlayer.pause();return;}
+        if(!foreground || !wantsAudio || closed){if(musicPlayer!=null && musicPrepared && musicPlayer.isPlaying())musicPlayer.pause();return;}
         String asset=requestedAsset;
         try {
             if(musicPlayer==null || !asset.equals(playingAsset)){
                 releaseAudio();
-                musicPlayer=new MediaPlayer();
-                musicPlayer.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
-                try(AssetFileDescriptor fd=getAssets().openFd(asset)){musicPlayer.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}
-                musicPlayer.setLooping(true);musicPlayer.setVolume(musicVolume,musicVolume);musicPlayer.prepare();playingAsset=asset;
+                final MediaPlayer player=new MediaPlayer();musicPlayer=player;musicPrepared=false;playingAsset=asset;
+                player.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build());
+                try(AssetFileDescriptor fd=getAssets().openFd(asset)){player.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}
+                player.setOnPreparedListener(p->{if(musicPlayer!=p||closed)return;musicPrepared=true;p.setLooping(true);p.setVolume(musicVolume,musicVolume);if(foreground&&wantsAudio)p.start();});
+                player.setOnErrorListener((p,w,e)->{if(musicPlayer==p)releaseAudio();return true;});
+                player.prepareAsync();return;
             }
-            if(!musicPlayer.isPlaying())musicPlayer.start();
+            if(musicPrepared&&!musicPlayer.isPlaying())musicPlayer.start();
         } catch(Exception e){android.util.Log.e("EvolutionAudio","Audio failed",e);releaseAudio();}
     }
-    private void releaseAudio(){if(musicPlayer!=null){musicPlayer.release();musicPlayer=null;}playingAsset="";}
+    private void releaseAudio(){musicPrepared=false;if(musicPlayer!=null){musicPlayer.release();musicPlayer=null;}playingAsset="";}
     private static boolean validBoss(String type){return type!=null && type.matches("gold|fire|ice|venom|shadow|electric|ancient|apocalypse|leviathan|hydra|cosmic|thanatos");}
     private void releaseBoss(){if(bossPlayer!=null){bossPlayer.release();bossPlayer=null;}}
     private void playBoss(String type,float volume){
@@ -66,7 +69,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void stopBossSound(){handler.post(()->releaseBoss());}
         @JavascriptInterface public void bossVolume(float value){handler.post(()->{if(bossPlayer!=null){float v=Math.max(0f,Math.min(1f,value));bossPlayer.setVolume(v,v);}});}
 
-        @JavascriptInterface public void volume(float value){handler.post(()->{musicVolume=Math.max(0f,Math.min(1f,value));if(musicPlayer!=null)musicPlayer.setVolume(musicVolume,musicVolume);});}
+        @JavascriptInterface public void volume(float value){handler.post(()->{musicVolume=Math.max(0f,Math.min(1f,value));if(musicPlayer!=null&&musicPrepared)musicPlayer.setVolume(musicVolume,musicVolume);});}
         @JavascriptInterface public void audio(boolean enabled,boolean boss){handler.post(()->{wantsAudio=enabled;bossAudio=boss;requestedAsset=boss?"suspense.mp3":"music.mp3";updateAudio();});}
         @JavascriptInterface public void soundtrack(boolean enabled,String stage){handler.post(()->{wantsAudio=enabled;requestedAsset="boss".equals(stage)?"suspense.mp3":"intro".equals(stage)?"intro.mp3":"menu".equals(stage)?"menu.mp3":"music.mp3";if(stage!=null && stage.matches("arena:(neon|jungle|lava|ice|desert|swamp|ocean|temple|alien|haunted|city|jurassic)")) requestedAsset="arena-"+stage.substring(6)+".mp3";if(stage!=null&&stage.startsWith("boss:")&&validBoss(stage.substring(5)))requestedAsset="boss-audio/"+stage.substring(5)+"-theme.mp3";if(!enabled)releaseBoss();updateAudio();});}
         @JavascriptInterface public void alertKing(){handler.post(()->{if(!foreground||closed)return;Vibrator v=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);if(v!=null&&v.hasVibrator()){long[] pattern={0,220,100,220,100,450};if(android.os.Build.VERSION.SDK_INT>=26)v.vibrate(VibrationEffect.createWaveform(pattern,-1));else v.vibrate(pattern,-1);}});}
@@ -79,6 +82,17 @@ public class MainActivity extends Activity {
     private long started;
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
+        // Request a 60 Hz or higher mode without changing the display resolution.
+        try {
+            android.view.Display display=getWindowManager().getDefaultDisplay();
+            android.view.Display.Mode current=display.getMode(),best=null;
+            for(android.view.Display.Mode mode:display.getSupportedModes()){
+                if(mode.getPhysicalWidth()!=current.getPhysicalWidth()||mode.getPhysicalHeight()!=current.getPhysicalHeight()||mode.getRefreshRate()<59.5f)continue;
+                if(best==null||Math.abs(mode.getRefreshRate()-60f)<Math.abs(best.getRefreshRate()-60f))best=mode;
+            }
+            if(best!=null){android.view.WindowManager.LayoutParams lp=getWindow().getAttributes();lp.preferredDisplayModeId=best.getModeId();getWindow().setAttributes(lp);}
+        }catch(Exception ignored){}
+        getWindow().setFlags(android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,android.view.WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
         getWindow().getDecorView().setSystemUiVisibility(5894);
         setVolumeControlStream(AudioManager.STREAM_MUSIC);
         FrameLayout root = new FrameLayout(this);

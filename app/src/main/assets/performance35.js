@@ -22,11 +22,16 @@ function terrain(main,type,x,y,w,h,ctx,t,d,quality){
  ctx.drawImage(cache.canvas,cache.x,cache.y,cache.W,cache.H);return true;
 }
 // Only changes the internal WebGL pixel count; logical coordinates, simulation, HUD and settings stay fixed.
-function sample(r,t,dt,boss){let s=r.perf35;if(!s)s=r.perf35={at:t,n:0,sum:0,slow:0,good:0,lastBoss:false};if(dt>250||dt<=0){s.at=t;s.n=0;s.sum=0;s.slow=0;s.good=0;return;}if(boss&&!s.lastBoss){s.good=0;}s.lastBoss=boss;s.n++;s.sum+=dt;if(dt>21)s.slow++;
- if(t-s.at<900||s.n<12)return;let avg=s.sum/s.n,bad=s.slow/s.n,scale=r.performanceScale35||1;
- if(avg>19.3&&bad>.22){scale=Math.max(.65,Math.round((scale-.10)*100)/100);s.good=0;}else if(avg<17.4&&bad<.10){if(++s.good>=4){scale=Math.min(1,Math.round((scale+.05)*100)/100);s.good=0;}}else s.good=0;
- r.performanceScale35=scale;s.at=t;s.n=0;s.sum=0;s.slow=0;
+function sample(r,t,dt,boss){
+ let s=r.perf35;if(!s)s=r.perf35={at:t,n:0,sum:0,slow:0,good:0,lastBoss:false};
+ if(dt>250||dt<=0){s.at=t;s.n=0;s.sum=0;s.slow=0;s.good=0;return;}
+ if(boss&&!s.lastBoss){s.good=0;}s.lastBoss=boss;s.n++;s.sum+=dt;if(dt>20)s.slow++;
+ if(t-s.at<700||s.n<10)return;
+ const avg=s.sum/s.n,bad=s.slow/s.n;let tier=r.mobileTier37||0,scale=r.performanceScale35||1;
+ if(avg>18.5&&bad>.18){tier=Math.min(3,tier+1);scale=Math.max(.50,Math.round((scale-(avg>26?.15:.08))*100)/100);s.good=0;}
+ else if(avg<17.6&&bad<.12){if(++s.good>=7){scale=Math.min(1,Math.round((scale+.04)*100)/100);if(scale>=.9)tier=Math.max(0,tier-1);s.good=0;}}else s.good=0;
+ r.mobileTier37=tier;r.performanceScale35=scale;r.perfStats37={fps:Math.round(1000/avg),slow:Math.round(100*bad),tier,scale,boss};s.at=t;s.n=0;s.sum=0;s.slow=0;
 }
-function reset(r){if(r.perf35)r.perf35=null;r.performanceScale35=1;}
+function reset(r){r.perf35=null;r.performanceScale35=1;r.mobileTier37=0;}
 root.EvolutionFPS35={pattern,terrain,sample,reset};
 })(window);
