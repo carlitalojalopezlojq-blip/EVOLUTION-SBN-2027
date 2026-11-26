@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const A=require('../app/src/main/assets/boss-audio');const root=path.join(__dirname,'../app/src/main/assets');
+assert.equal(A.types.length,12);for(const t of A.types)for(const k of ['roar','theme'])assert(fs.statSync(path.join(root,A.asset(t,k))).size>10000);
+const tracker=new A.Tracker(),p=(id,type)=>({id:'__king__'+id,type}),one=p('1','fire'),two=p('2','ice'),three=p('3','hydra');
+const update=(...bosses)=>tracker.update(Object.fromEntries(bosses.map(b=>[b.id,b])),{},true);
+assert.equal(update(one).type,'fire');assert.equal(tracker.poll(0,true),'fire');assert.equal(update(one).changed,false);assert.equal(tracker.poll(3000,true),null);
+assert.equal(update(one,two).type,'fire');assert.equal(tracker.poll(3100,true),'ice');assert.equal(update(one,two,three).type,'hydra');assert.equal(tracker.poll(3200,true),null);assert.equal(tracker.poll(5500,true),'hydra');assert.equal(update(one,two).type,'fire');assert.equal(update(two).type,'ice');assert.equal(update().type,null);assert.equal(tracker.poll(9000,true),null);
+update(one);assert.equal(tracker.poll(10000,false),null);assert.equal(tracker.poll(11000,true),null);update();update(one);assert.equal(tracker.poll(12000,true),'fire');
+tracker.reset();let ev={king:true,kings:[{type:'shadow'},{type:'apocalypse'},{type:'shadow'}]};assert.equal(tracker.update({},ev,false).type,'apocalypse');assert.equal(tracker.poll(0,true),'apocalypse');assert.equal(tracker.poll(2350,true),'shadow');assert.equal(tracker.poll(4700,true),'shadow');assert.equal(tracker.update({},ev,false).fresh.length,0);assert.equal(tracker.update({},{king:false},false).type,null);
+assert.equal(A.asset('../../evil','roar'),'boss-audio/gold-roar.mp3');
+console.log('OK: 12 temas y rugidos, prioridad, invasión, cola, silencio, desaparición y retorno.');

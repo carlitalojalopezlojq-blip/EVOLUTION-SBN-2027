@@ -27,7 +27,7 @@ import android.widget.*;
 public class MainActivity extends Activity {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private WebView web;
-    private MediaPlayer musicPlayer;
+    private MediaPlayer musicPlayer, bossPlayer;
     private boolean foreground, wantsAudio, bossAudio;
     private float musicVolume=.65f;
     private String playingAsset="", requestedAsset="music.mp3";
@@ -46,10 +46,29 @@ public class MainActivity extends Activity {
         } catch(Exception e){android.util.Log.e("EvolutionAudio","Audio failed",e);releaseAudio();}
     }
     private void releaseAudio(){if(musicPlayer!=null){musicPlayer.release();musicPlayer=null;}playingAsset="";}
+    private static boolean validBoss(String type){return type!=null && type.matches("gold|fire|ice|venom|shadow|electric|ancient|apocalypse|leviathan|hydra|cosmic|thanatos");}
+    private void releaseBoss(){if(bossPlayer!=null){bossPlayer.release();bossPlayer=null;}}
+    private void playBoss(String type,float volume){
+        if(!foreground||closed||!validBoss(type)||volume<=0)return;
+        releaseBoss();
+        try {
+            final MediaPlayer player=new MediaPlayer();bossPlayer=player;
+            player.setAudioAttributes(new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build());
+            try(AssetFileDescriptor fd=getAssets().openFd("boss-audio/"+type+"-roar.mp3")){player.setDataSource(fd.getFileDescriptor(),fd.getStartOffset(),fd.getLength());}
+            float v=Math.max(0f,Math.min(1f,volume));player.setVolume(v,v);
+            player.setOnCompletionListener(p->{if(bossPlayer==p)releaseBoss();});
+            player.setOnErrorListener((p,w,e)->{if(bossPlayer==p)releaseBoss();return true;});
+            player.setOnPreparedListener(p->{if(bossPlayer==p&&foreground&&!closed)p.start();});player.prepareAsync();
+        } catch(Exception e){android.util.Log.e("EvolutionAudio","Boss sound failed",e);releaseBoss();}
+    }
     public class GameBridge {
+        @JavascriptInterface public void bossSound(String type,float volume){handler.post(()->playBoss(type,volume));}
+        @JavascriptInterface public void stopBossSound(){handler.post(()->releaseBoss());}
+        @JavascriptInterface public void bossVolume(float value){handler.post(()->{if(bossPlayer!=null){float v=Math.max(0f,Math.min(1f,value));bossPlayer.setVolume(v,v);}});}
+
         @JavascriptInterface public void volume(float value){handler.post(()->{musicVolume=Math.max(0f,Math.min(1f,value));if(musicPlayer!=null)musicPlayer.setVolume(musicVolume,musicVolume);});}
         @JavascriptInterface public void audio(boolean enabled,boolean boss){handler.post(()->{wantsAudio=enabled;bossAudio=boss;requestedAsset=boss?"suspense.mp3":"music.mp3";updateAudio();});}
-        @JavascriptInterface public void soundtrack(boolean enabled,String stage){handler.post(()->{wantsAudio=enabled;requestedAsset="boss".equals(stage)?"suspense.mp3":"intro".equals(stage)?"intro.mp3":"menu".equals(stage)?"menu.mp3":"music.mp3";if(stage!=null && stage.matches("arena:(neon|jungle|lava|ice|desert|swamp|ocean|temple|alien|haunted|city|jurassic)")) requestedAsset="arena-"+stage.substring(6)+".mp3";updateAudio();});}
+        @JavascriptInterface public void soundtrack(boolean enabled,String stage){handler.post(()->{wantsAudio=enabled;requestedAsset="boss".equals(stage)?"suspense.mp3":"intro".equals(stage)?"intro.mp3":"menu".equals(stage)?"menu.mp3":"music.mp3";if(stage!=null && stage.matches("arena:(neon|jungle|lava|ice|desert|swamp|ocean|temple|alien|haunted|city|jurassic)")) requestedAsset="arena-"+stage.substring(6)+".mp3";if(stage!=null&&stage.startsWith("boss:")&&validBoss(stage.substring(5)))requestedAsset="boss-audio/"+stage.substring(5)+"-theme.mp3";if(!enabled)releaseBoss();updateAudio();});}
         @JavascriptInterface public void alertKing(){handler.post(()->{if(!foreground||closed)return;Vibrator v=(Vibrator)getSystemService(Context.VIBRATOR_SERVICE);if(v!=null&&v.hasVibrator()){long[] pattern={0,220,100,220,100,450};if(android.os.Build.VERSION.SDK_INT>=26)v.vibrate(VibrationEffect.createWaveform(pattern,-1));else v.vibrate(pattern,-1);}});}
     }
     private FrameLayout splash;
@@ -116,7 +135,7 @@ public class MainActivity extends Activity {
     }};
     private TextView text(String s,int size,int color){TextView t=new TextView(this);t.setText(s);t.setTextSize(size);t.setTextColor(color);t.setGravity(Gravity.CENTER);return t;}
     private int dp(int v){return Math.round(v*getResources().getDisplayMetrics().density);}
-    @Override protected void onPause(){super.onPause();foreground=false;updateAudio();if(web!=null)web.onPause();}
+    @Override protected void onPause(){super.onPause();foreground=false;releaseBoss();updateAudio();if(web!=null)web.onPause();}
     @Override protected void onResume(){super.onResume();foreground=true;updateAudio();if(web!=null){web.onResume();web.evaluateJavascript("if(typeof music==='function')music()",null);}}
-    @Override protected void onDestroy(){closed=true;releaseAudio();handler.removeCallbacksAndMessages(null);if(web!=null){web.stopLoading();((android.view.ViewGroup)web.getParent()).removeView(web);web.destroy();}super.onDestroy();}
+    @Override protected void onDestroy(){closed=true;releaseBoss();releaseAudio();handler.removeCallbacksAndMessages(null);if(web!=null){web.stopLoading();((android.view.ViewGroup)web.getParent()).removeView(web);web.destroy();}super.onDestroy();}
 }
