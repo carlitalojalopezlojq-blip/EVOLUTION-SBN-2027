@@ -1,0 +1,20 @@
+/* Founder Edition: presentation only; server remains authoritative. */
+(function(){'use strict';
+const el=id=>document.getElementById(id),make=(tag,t,c)=>{const x=document.createElement(tag);if(t!=null)x.textContent=t;if(c)x.className=c;return x;};
+const play=el('play'),toggle=make('button','⋯','matchMenu54');toggle.id='matchMenu54';toggle.type='button';toggle.setAttribute('aria-label','Opciones de partida');toggle.setAttribute('aria-expanded','false');const drawer=make('div',null,'matchDrawer54');drawer.hidden=true;
+function open(v){drawer.hidden=!v;toggle.setAttribute('aria-expanded',String(v));}
+// Move existing elements, preserving all original handlers and availability rules.
+for(const k of ['exit','sound','invitePlay','share41','online3d41']){const b=el(k);if(b)drawer.append(b);}
+const rankToggle=el('originRank53');if(rankToggle)drawer.append(rankToggle);
+toggle.onclick=()=>open(drawer.hidden);drawer.addEventListener('click',e=>{if(e.target.closest('button'))open(false);});play.append(toggle,drawer);
+const warning=make('div',null,'matchWarning54');warning.hidden=true;warning.setAttribute('role','status');play.append(warning);
+let last=performance.now(),closing=false,renderNotice=0;
+function networkReset(){last=performance.now();closing=false;warning.hidden=true;open(false);}
+function snapshot(){last=performance.now();closing=false;if(performance.now()>renderNotice)warning.hidden=true;}
+function network(){if(local||defeated||!active||!sessionToken||watching)return;const now=performance.now(),age=now-last;if(age>3500){warning.hidden=false;warning.textContent='Conexión inestable · intentando recuperar…';}if(age>10000&&!closing&&socket?.readyState===1){closing=true;socket.close();}}
+function renderWarning(){renderNotice=performance.now()+5000;warning.textContent='Modo 2D de recuperación';warning.hidden=false;setTimeout(()=>{if(performance.now()>=renderNotice&&(local||performance.now()-last<3500))warning.hidden=true;},5100);}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)last=performance.now();});
+function canvasName(g,name,x,y,t){g.save();g.font='bold 13px sans-serif';g.textAlign='left';const width=g.measureText(name).width,xx=x-(width+19)/2,bx=xx+width+11,by=y-5;g.fillStyle='#ffe27c';g.shadowColor='#000';g.shadowBlur=3;g.fillText(name,xx,y);g.shadowBlur=0;const grad=g.createLinearGradient(bx-7,by-7,bx+7,by+7);grad.addColorStop(0,'#fff8bc');grad.addColorStop(.45,'#ffcf3f');grad.addColorStop(1,'#ad660b');g.fillStyle=grad;g.strokeStyle='#fff0a1';g.lineWidth=.7;g.beginPath();for(let i=0;i<16;i++){const angle=-Math.PI/2+i*Math.PI/8,r=i%2?6:8;const px=bx+Math.cos(angle)*r,py=by+Math.sin(angle)*r;if(!i)g.moveTo(px,py);else g.lineTo(px,py);}g.closePath();g.fill();g.stroke();g.fillStyle='#522900';g.font='900 11px sans-serif';g.textAlign='center';g.fillText('V',bx,by+4);if(t%3000<650){g.globalAlpha=.65*Math.sin(t%3000/650*Math.PI);g.strokeStyle='#fff';g.beginPath();g.moveTo(bx-6,by-5);g.lineTo(bx-2,by-7);g.stroke();}g.restore();}
+function mutationCard(b,n,desc,equipped,owned){b.classList.add('mutationCard54');const gem=make('span','⬡','mutationGem54');gem.setAttribute('aria-hidden','true');b.replaceChildren(gem,make('strong',n),make('small',desc),make('span',equipped?'EQUIPADA':owned?'EQUIPAR':'BLOQUEADA','mutationState54'));if(equipped)b.classList.add('selected');}
+window.Founder54={canvasName,mutationCard,network,networkReset,snapshot,renderWarning};
+})();
