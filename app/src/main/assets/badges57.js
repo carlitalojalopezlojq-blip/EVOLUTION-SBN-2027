@@ -2,10 +2,12 @@
 const E=id=>document.getElementById(id),make=(tag,t,cls)=>{const x=document.createElement(tag);if(t!=null)x.textContent=t;if(cls)x.className=cls;return x;};
 function badge(role){if(role!=='F'&&role!=='V')return null;const b=make('span',role==='V'?'V':null,role==='F'?'badgeF57':'badgeV57');b.setAttribute('role','img');b.setAttribute('aria-label',role==='F'?'Fundador supremo':'Verificado por el fundador');b.title=b.getAttribute('aria-label');return b;}
 function role(p){return p?.founder53===true||p?.badge57==='F'?'F':p?.badge57==='V'?'V':null;}
+function nameLine(el,name,r,prefix='',suffix=''){const span=make('span',String(name??'Jugador'),r==='F'?'nameF81':'');el.append(prefix,span);append(el,r);el.append(suffix);return el;}
+function localRole(p){return p&&p.id==='me'&&accountToken&&cloudProfile?role(cloudProfile):null;}
 function append(el,r){const b=badge(r);if(b)el.append(' ',b);}
 function rank(el,heading,rows){const key=JSON.stringify([heading,rows]);if(el.dataset.badgeKey57===key)return;el.dataset.badgeKey57=key;el.replaceChildren(make('div',heading));for(const [i,r] of rows.entries()){const line=make('span',`${i+1}. ${r[0]}`,'rankLine57');append(line,r[2]);line.append(` · ${r[1]}`);el.append(line);}}
 function results(el,rows,format){el.replaceChildren();for(const r of rows){const line=make('div',r.name,'badgeRow57');append(line,role(r));line.append(make('span',format(r)));el.append(line);}}
-window.Badges57={badge,role,append,rank,results};
+window.Badges57={badge,role,append,rank,results,nameLine,localRole};
 // Server credentials come only from cloudRequest; UI visibility is not authorization.
 const panel=make('div',null,'badgeAdmin57'),open=make('button','♛ Panel del fundador');open.type='button';open.hidden=true;panel.hidden=true;const section=E('profile');section.append(open,panel);
 const title=make('h3','VERIFICACIONES · FUNDADOR'),query=make('input');query.placeholder='Usuario o ID público completo';query.maxLength=36;query.setAttribute('aria-label','Buscar jugador');query.autocapitalize='none';query.spellcheck=false;const message=make('div',null,'badgeMessage57');message.setAttribute('role','status');const found=make('div'),list=make('div'),listTitle=make('h3','Jugadores verificados');let busy=false,authorized=false,revision=0,next=null,selected=null;

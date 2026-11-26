@@ -30,4 +30,6 @@ async function request(q,m,u,fail){
  }
  fail('Acción desconocida');
 }
-module.exports={SCHEMA,ACTIONS,role,identity,publicPlayer,request};
+async function directory(q,names){const keys=[...new Set(names.filter(n=>typeof n==='string'&&n).map(n=>n.toLowerCase()))];if(!keys.length)return new Map();const {rows}=await q('SELECT name,public_id51,badge_verified57 FROM evo44_users WHERE name=ANY($1::text[])',[keys]);return new Map(rows.map(r=>[r.name,publicPlayer(r)]));}
+function named(map,name){return map.get(String(name||'').toLowerCase())||{name,badge57:null};}
+module.exports={directory,named,SCHEMA,ACTIONS,role,identity,publicPlayer,request};

@@ -1,0 +1,10 @@
+'use strict';
+const assert=require('node:assert/strict'),O=require('../origin53'),B=require('../verification57'),S=require('../social42'),U=require('../universe70');
+const founder={name:O.NAME,public_id51:O.UUID},verified={name:'friend',public_id51:'11111111-1111-4111-8111-111111111111',badge_verified57:true};
+const members=new Map([['a',{name:O.DISPLAY,account:founder}],['b',{name:'friend',account:verified}],['g',{name:'guest',badge57:'F'}]]),clients=new Map([['a',{}],['b',{}],['g',{}]]),r={members,clients,waiting:true,host:'a',chat:[],settings:{party74:4}};
+let packets=[];const send=(ws,m)=>packets.push(m);
+assert.deepEqual(S.state(r).players.map(p=>p.badge57),['F','V',null]);
+S.handle(r,'a',{type:'lobbyChat',text:'Hola',badge57:'V'},send,()=>{},()=>{});assert(packets.every(p=>p.chat[0].badge57==='F'));
+S.handle(r,'g',{type:'lobbyChat',text:'Intento',badge57:'F'},send,()=>{},()=>{});assert.equal(packets.at(-1).chat.at(-1).badge57,null);
+S.handle(r,'b',{type:'lobbyChat',text:'Hola'},send,()=>{},()=>{});assert.equal(packets.at(-1).chat.at(-1).badge57,'V');verified.badge_verified57=false;S.broadcast(r,send);assert.equal(packets.at(-1).chat.at(-1).badge57,null);
+(async()=>{const q=async(sql,args)=>{if(sql.includes('SELECT sender,body'))return {rows:[{sender:O.NAME,body:'<b>Hola</b>'},{sender:'friend',body:'mensaje'}]};if(sql.includes('name=ANY'))return {rows:[founder,verified].filter(x=>args[0].includes(x.name))};throw Error(sql);};const m=await U.request(q,{action:'chat70'},verified,x=>{throw Error(x)});assert.equal(m.chat70[1].sender,O.DISPLAY);assert.equal(m.chat70[1].badge57,'F');assert.equal(m.chat70[1].body,'<b>Hola</b>');assert.equal(m.chat70[0].badge57,null);assert.equal(B.role({name:O.NAME}),null);console.log('OK 8.1: lobby identities, chat, spoof denial, revoked V, persistent chat identity.');})().catch(e=>{console.error(e);process.exitCode=1;});
