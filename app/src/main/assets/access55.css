@@ -1,0 +1,9 @@
+/* Separate startup, authentication and lobby, including during fade. */
+.startup55 #originGate53,.startup55 #menu,.startup55 #pane,.access55 #menu,.access55 #pane{visibility:hidden!important;pointer-events:none!important}
+#intro[hidden],#originGate53[hidden],#originGate53 [hidden]{display:none!important}
+#intro{z-index:100!important;background:radial-gradient(ellipse at center,#13271c,#060d0a 80%)!important;isolation:isolate}
+#originGate53{z-index:90;background:radial-gradient(ellipse at 25% 15%,#213a2b,#081810 65%,#050e0a);isolation:isolate;padding:8px}
+#originGate53 section{width:min(560px,94vw);border-radius:16px;padding:10px 14px;background:#0d211b;border-color:#a28d50;box-shadow:0 10px 40px #0008;max-height:100%;overflow:auto}
+#originGate53 .accessTabs55{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:6px 5px}#originGate53 .accessTabs55 button{margin:0}#originGate53 .accessTabs55 button[aria-pressed=true]{border-color:#e1bf62;background:#31513b;color:#ffe399}
+#originGate53 .nameCount55{grid-column:1/-1;text-align:left;font-size:10px;color:#cbbf9e;margin:0 2px}#originGate53 p[role=status]:empty{display:none}#originGate53 p[role=status]{color:#f2d78a}
+@media(max-height:350px){#originGate53 section{padding:6px 10px}#originGate53 h2{font-size:18px}#originGate53 p{margin:3px 0}#originGate53 button,#originGate53 input{padding:5px 8px;min-height:30px}#originGate53 .originForm53{gap:3px}}
