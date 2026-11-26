@@ -35,3 +35,10 @@ input,textarea,[contenteditable="true"]{-webkit-user-select:text;user-select:tex
 #stay87{background:#28654e;border-color:#91d1a3;color:#edfff1}
 #quit87{background:#502d2b;border-color:#ba7772;color:#ffe5dc}
 @media(max-height:320px){#play .hud87{top:3px;gap:3px}#play .hud87col{gap:2px}#play .hud87 #hud,#play .hud87 #rank,#play .hud87 #event,#play .hud87 .kingsHud73{font-size:9px;padding:3px 5px}#play .hud87 #evo86>button{min-height:24px}}
+
+/* Real RTT, no artificial reduction; colors reflect the last valid sample. */
+#play .hud87 .ping60[data-level87="good"]{color:#87f5a8}
+#play .hud87 .ping60[data-level87="fair"]{color:#e4e899}
+#play .hud87 .ping60[data-level87="warm"]{color:#ffc17d}
+#play .hud87 .ping60[data-level87="bad"]{color:#ff9b92}
+#play .hud87 .ping60[data-level87="unknown"]{color:#bed1c8}

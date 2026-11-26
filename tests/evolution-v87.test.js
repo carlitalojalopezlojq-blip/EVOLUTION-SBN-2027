@@ -1,0 +1,12 @@
+'use strict';
+const assert=require('node:assert/strict'),N=require('../network71'),O=require('../app/src/main/assets/online41'),fs=require('node:fs'),vm=require('node:vm');
+const ws={readyState:1,bufferedAmount:0,packets:[],send(s){this.packets.push(JSON.parse(s));}};
+assert.equal(N.snapshotDue87(ws,1,true),false);assert.equal(N.snapshotDue87(ws,2,true),true);
+ws.fast87=true;assert.equal(N.snapshotDue87(ws,1,true),false);N.sendSnapshot87(ws,{p:[]});assert(N.snapshotDue87(ws,3,true));assert(!N.snapshotDue87(ws,3,false));
+ws.bufferedAmount=1;assert(!N.snapshotDue87(ws,4,true));N.sendSnapshot87(ws,{p:[1]});assert.equal(ws.packets.length,1);ws.bufferedAmount=0;
+N.sendSnapshot87(ws,{p:'x'.repeat(7100)});assert(!N.snapshotDue87(ws,5,true));assert(N.snapshotDue87(ws,6,true));ws.readyState=3;assert(!N.snapshotDue87(ws,6,true));ws.readyState=1;
+const l=new O.Latency87();assert.equal(l.current(0),null);assert(l.probe(0,ws));assert(l.receive(0,40));assert.equal(l.current(40),40);assert(!l.receive(0,50));assert(!l.probe(1000,ws));assert(l.probe(1500,ws));assert(!l.receive(0,1510));assert(!l.probe(3000,ws));assert(l.receive(1500,3500));assert.equal(l.current(3500),2000);assert(l.probe(3501,ws));assert(l.receive(3501,3561));assert.equal(l.prediction(3561),60);assert.equal(l.current(3561),60);assert.equal(l.current(10000),null);l.reset();assert.equal(l.prediction(10000),null);assert(!l.receive(3501,10000));
+assert.deepEqual([null,40,75,125,226].map(O.pingLevel87),['unknown','good','fair','warm','bad']);
+const m=new O.Motion();for(let i=0;i<10;i++)m.arrival(i*50);assert(m.interval<55);for(let i=10;i<30;i++)m.arrival(450+(i-9)*100);assert(m.interval>95);m.arrival(5000);assert.equal(m.interval,100);
+const html=fs.readFileSync('app/src/main/assets/index.html','utf8');for(const match of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(match[1]);assert(html.includes('type:\'resume\',net87:true'));assert(html.includes('type:\'join\',net87:true'));assert(html.includes('onlineLatency87.prediction(t)'));assert(html.includes('now-lastInput41<20'));
+console.log('OK 8.7: real RTT, stale samples, jitter smoothing, 10/20 Hz negotiation, congestion, load fallback, interpolation and script syntax.');

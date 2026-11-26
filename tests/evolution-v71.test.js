@@ -13,5 +13,5 @@ global.window=global;require('../app/src/main/assets/performance35');const F=glo
 assert(F.richFruit('high',0,false,1));assert(!F.richFruit('high',2,false,1));assert(F.richFruit('high',2,false,54));assert(!F.richFruit('high',3,false,54));assert(!F.richFruit('low',0,false,1));assert(!F.richFruit('high',0,true,1));
 let n=0;const ctx={createPattern(){n++;return {};}};const tile={};assert.equal(F.pattern(ctx,tile),F.pattern(ctx,tile));assert.equal(n,1);
 let r={},t=0;for(let i=0;i<150;i++){t+=33;F.sample(r,t,33,false);}assert.equal(r.mobileTier37,3);for(let i=0;i<5000;i++){t+=16.667;F.sample(r,t,16.667,false);}assert.equal(r.mobileTier37,0);
-const html=fs.readFileSync('app/src/main/assets/index.html','utf8');assert(html.includes('setInterval(()=>{if(canControl522())input41();},25)'));assert(html.includes('if(document.hidden||paused)return'));assert(html.includes('EvolutionFPS35.richFruit'));
+const html=fs.readFileSync('app/src/main/assets/index.html','utf8');assert(html.includes('setInterval(()=>{if(canControl522())input41();},20)'));assert(html.includes('if(document.hidden||paused)return'));assert(html.includes('EvolutionFPS35.richFruit'));
 console.log('OK v7.1: exact snapshot order and bounds, backpressure, adaptive fruit LOD, pattern cache, recovery, independent controls.');

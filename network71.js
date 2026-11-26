@@ -15,4 +15,18 @@ function fruitView(fruits){
  };
 }
 function writable(ws){return ws.readyState===1&&ws.bufferedAmount<200000;}
-module.exports={fruitView,writable};
+// Negotiated 8.7 snapshots: never build stale packets for a congested client.
+// Legacy clients retain their original cadence and queue limits.
+function snapshotDue87(ws,tick,fast){
+ if(!ws.fast87)return tick%2===0&&writable(ws);
+ if(ws.readyState!==1||ws.bufferedAmount>0)return false;
+ return tick%2===0||(fast&&ws.lastSnapshotBytes87>0&&ws.lastSnapshotBytes87<=7000);
+}
+function sendSnapshot87(ws,data){
+ if(!ws.fast87){if(writable(ws))ws.send(JSON.stringify(data));return;}
+ if(ws.readyState!==1||ws.bufferedAmount>0)return;
+ const payload=JSON.stringify(data);
+ ws.lastSnapshotBytes87=Buffer.byteLength(payload);
+ ws.send(payload);
+}
+module.exports={fruitView,writable,snapshotDue87,sendSnapshot87};

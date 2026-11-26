@@ -8,7 +8,7 @@ for(let k=0;k<Math.ceil(steps);k++){let f=Math.min(1,steps-k);a=physics.turnTowa
 class Motion{
  constructor(){this.reset();}
  reset(){this.head=null;this.rotation=null;this.at=null;this.id=null;this.life=null;this.lastArrival=null;this.interval=100;this.shift=[0,0];}
- arrival(t){if(this.lastArrival!==null){let gap=t-this.lastArrival;if(gap>25&&gap<300)this.interval=this.interval*.75+gap*.25;}this.lastArrival=t;return clamp(this.interval,65,150);}
+ arrival(t){if(this.lastArrival!==null){let gap=t-this.lastArrival;if(gap>=25&&gap<350){const weight=gap<this.interval?.45:.25;this.interval=this.interval*(1-weight)+gap*weight;}else if(gap>=350)this.interval=100;}this.lastArrival=t;return clamp(this.interval,45,160);}
  frame(q,base,t,stamp,dir,boost,ping,bounds){
   const e=estimate(q,serverHeading(q),q.b===true,t-stamp,ping,bounds),dt=clamp(t-(this.at??t-16),1,50),[lo,hi]=bounds||[0,4000];
   if(this.id!==q.id||this.life!==q.life||!this.head||Math.hypot(e.head[0]-this.head[0],e.head[1]-this.head[1])>150){const first=estimate(q,dir,boost,t-stamp,ping,bounds);this.head=first.head.slice();this.rotation=first.angle;}
@@ -28,5 +28,15 @@ class Motion{
 }
 function cameraFactor59(dt,online){return 1-Math.exp(-clamp(dt,1,100)/(online?20:45));}
 function serverHeading(q){return Number.isFinite(q.t)?q.t:Number.isFinite(q.a)?q.a:0;}
-const api={ranges,estimate,Motion,serverHeading,cameraFactor59};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.EvolutionOnline41=api;
+// RTT is the measured application round trip; smoothing is used only for prediction.
+class Latency87{
+ constructor(){this.reset();}
+ reset(){this.sent=null;this.pending=false;this.last=null;this.raw=null;this.samples=[];}
+ probe(now,ws){if(ws?.readyState!==1||ws.bufferedAmount>0)return false;if(this.sent!==null&&now-this.sent<(this.pending?6000:1500))return false;this.sent=now;this.pending=true;ws.send(JSON.stringify({type:'ping',t:now}));return true;}
+ receive(echo,now){if(!this.pending||echo!==this.sent||!Number.isFinite(echo)||now<echo||now-echo>6000)return false;this.pending=false;this.raw=Math.round(now-echo);this.last=now;this.samples.push(this.raw);if(this.samples.length>5)this.samples.shift();return true;}
+ current(now){return this.last!==null&&now-this.last<=5500?this.raw:null;}
+ prediction(now){if(this.current(now)===null)return null;const sorted=this.samples.slice().sort((a,b)=>a-b);return sorted[Math.floor(sorted.length/2)];}
+}
+function pingLevel87(ping){return ping===null?'unknown':ping<=60?'good':ping<=100?'fair':ping<=150?'warm':'bad';}
+const api={ranges,estimate,Motion,serverHeading,cameraFactor59,Latency87,pingLevel87};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.EvolutionOnline41=api;
 })(typeof window==='undefined'?globalThis:window);
