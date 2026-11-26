@@ -1,0 +1,8 @@
+'use strict';
+const assert=require('node:assert/strict'),F=require('../app/src/main/assets/stability88'),Health=require('../health88'),fs=require('node:fs'),vm=require('node:vm');
+function run(b,seconds,refresh,cost,limit=60,active=true,start=0){let n=0;for(let i=0;i<Math.round(seconds*refresh);i++){const t=start+i*1000/refresh;if(b.allow(t,limit,active)){n++;b.record(cost,active,limit);}}return n;}
+let b=new F.FrameBudget();assert.equal(run(b,1,120,4),60);b.reset();assert.equal(run(b,1,60,4,30),30);b.reset();assert.equal(run(b,1,120,4,60,false),30);b.reset();run(b,3,30,25);assert(b.adaptive);assert.equal(run(b,1,60,5,60,true,3000),30);run(b,8,60,5,60,true,4000);assert(!b.adaptive);b.reset();assert.equal(run(b,1,60,4),60);
+const m=new Map();for(let i=0;i<40;i++)F.lruSet(m,i,i);assert.equal(m.size,32);assert.equal(F.lruGet(m,8),8);F.lruSet(m,40,40);assert(m.has(8)&&!m.has(9));
+assert.equal(F.connectionState(15000,true,false),'paused');assert.equal(F.connectionState(15000,false,false),'reconnect');assert.equal(F.connectionState(4000,false,false),'warning');assert.equal(F.connectionState(20,false,false),'ok');
+const h=new Health();for(let i=0;i<1400;i++)h.record(i*50,3,16,i===1399?1:0);const r=h.report();assert.equal(r.samples,1200);assert.equal(r.ticks,1400);assert.equal(r.tickWorkP95Ms,3);assert.equal(r.blockedClientTicks,1);assert.equal(r.peakClients,16);assert.equal(r.lateTicks,0);
+const html=fs.readFileSync('app/src/main/assets/index.html','utf8');for(const x of html.matchAll(/<script>([\s\S]*?)<\/script>/g))new vm.Script(x[1]);assert(html.includes('frameBudget88.allow'));assert(html.includes('Founder54?.partyPause'));console.log('OK 8.8: adaptive FPS, 120 Hz cap, recovery, bounded LRU, party pause and aggregate telemetry.');

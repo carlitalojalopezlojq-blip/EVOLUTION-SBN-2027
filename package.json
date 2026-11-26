@@ -1,1 +1,12 @@
-{"name":"evolution-sbn-2027","version":"1.0.0","scripts":{"start":"node server.js"},"dependencies":{"ws":"^8.18.0","pg":"^8.16.3"}}
+{
+  "name": "evolution-sbn-2027",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node server.js",
+    "test:launch": "node tests/evolution-v86.test.js && node tests/evolution-v86-server.test.js && node tests/evolution-v87.test.js && node tests/evolution-v87-server.test.js && node tests/evolution-v88.test.js && node tests/evolution-v88-server.test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0",
+    "pg": "^8.16.3"
+  }
+}
